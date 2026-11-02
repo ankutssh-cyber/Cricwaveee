@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRICXPERTSLIVE - LIVE STREAM</title>
+    <!-- HLS.js for playing .m3u8 direct streams -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #07090f;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            animation: fadeInBody 0.6s ease-in-out;
+        }
+
+        @keyframes fadeInBody {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* TELEGRAM FORCE JOIN MODAL POPUP ANIMATION */
+        .tg-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 6, 10, 0.96);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            padding: 16px;
+            animation: fadeInOverlay 0.4s ease;
+        }
+
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tg-modal-card {
+            width: 100%;
+            max-width: 380px;
+            background: linear-gradient(145deg, #111827, #0b101b);
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 136, 204, 0.3);
+            animation: popUpScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popUpScale {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .tg-icon-box {
+            width: 55px;
+            height: 55px;
+            background: #0088cc;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 16px auto;
+            box-shadow: 0 8px 20px rgba(0, 136, 204, 0.4);
+            animation: floatIcon 2.5s infinite ease-in-out;
+        }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .tg-icon-box svg {
+            width: 30px;
+            height: 30px;
+            fill: #ffffff;
+        }
+
+        .tg-modal-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .tg-modal-subtitle {
+            font-size: 13px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tg-modal-desc {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .tg-join-btn {
+            width: 100%;
+            background: #0088cc;
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            text-decoration: none;
+            display: block;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4);
+            margin-bottom: 10px;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .tg-join-btn:active {
+            transform: scale(0.96);
+        }
+
+        .tg-already-btn {
+            width: 100%;
+            background: #131b2c;
+            color: #94a3b8;
+            border: 1px solid #1e293b;
+            padding: 11px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tg-already-btn:hover {
+            background: #1a253a;
+            color: #ffffff;
+        }
+
+        /* TOP HEADER */
+        .top-header {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .top-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-right-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .live-tag {
+            background: #dc2626;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .admin-btn-floating {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .admin-btn-floating:hover {
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        /* ADMIN PANEL */
+        .admin-panel {
+            width: 100%;
+            max-width: 500px;
+            background: #111827;
+            border: 1px solid #0088cc;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: none;
+            animation: fadeInAdmin 0.3s ease;
+        }
+
+        @keyframes fadeInAdmin {
+            from { opacity: 0; transform: scaleY(0.9); }
+            to { opacity: 1; transform: scaleY(1); }
+        }
+
+        .admin-panel h3 {
+            font-size: 13px;
+            color: #38bdf8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .admin-label {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .admin-input {
+            width: 100%;
+            background: #07090f;
+            border: 1px solid #1e293b;
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        .admin-save-btn {
+            background: #0088cc;
+            color: #ffffff;
+            border: none;
+            padding: 9px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }
+
+        .admin-save-btn:hover {
+            background: #0077b3;
+        }
+
+        /* VIDEO PLAYER WRAPPER */
+        .player-wrapper {
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            background: #000000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            aspect-ratio: 16 / 9;
+            margin-bottom: 10px;
+            animation: zoomInPlayer 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes zoomInPlayer {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .player-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* PLAY OVERLAY */
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 9, 15, 0.92);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .play-btn-circle {
+            width: 65px;
+            height: 65px;
+            background: #0088cc;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 25px rgba(0, 136, 204, 0.7);
+            margin-bottom: 12px;
+            animation: pulseButton 1.5s infinite;
+        }
+
+        @keyframes pulseButton {
+            0% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 136, 204, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0); }
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 16px solid #ffffff;
+            margin-left: 3px;
+        }
+
+        .play-overlay-text {
+            font-size: 13px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* CHANNEL INFO BAR */
+        .channel-info-bar {
+            width: 100%;
+            max-width: 500px;
+            background: #0b101b;
+            border: 1px solid #1e293b;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ch-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .verified-badge {
+            color: #38bdf8;
+            font-size: 12px;
+        }
+
+        .ch-desc-row {
+            font-size: 10px;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* TELEGRAM BANNER WITH GLOW ANIMATION */
+        .tg-banner-exact {
+            width: 100%;
+            max-width: 500px;
+            background: linear-gradient(135deg, #0056b3, #0088cc);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            box-shadow: 0 0 20px rgba(0, 136, 204, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 12px;
+            animation: glowBanner 3s infinite alternate;
+            transition: transform 0.2s;
+        }
+
+        .tg-banner-exact:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes glowBanner {
+            0% { box-shadow: 0 0 10px rgba(0, 136, 204, 0.3); }
+            100% { box-shadow: 0 0 25px rgba(0, 136, 204, 0.7); }
+        }
+
+        .tg-banner-left-side {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tg-circle-icon {
+            width: 36px;
+            height: 36px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            animation: floatIcon 2s infinite ease-in-out;
+        }
+
+        .tg-circle-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #0088cc;
+        }
+
+        .tg-text-group h4 {
+            font-size: 12px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .tg-text-group p {
+            font-size: 9px;
+            color: #e2e8f0;
+            margin-top: 1px;
+        }
+
+        .tg-tap-pill {
+            background: #ffffff;
+            color: #0088cc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 900;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+
+        /* ACTION BUTTONS (RELOAD & SHARE) */
+        .action-buttons-row {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .action-btn {
+            flex: 1;
+            background: #0b101b;
+            border: 1px solid #1e293b;
+            color: #cbd5e1;
+            padding: 11px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            background: #131b2c;
+            color: #ffffff;
+            border-color: #38bdf8;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* QUALITY SWITCHER BAR */
+        .quality-bar {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            animation: fadeInUp 0.7s ease;
+        }
+
+        .q-btn {
+            flex: 1;
+            background: #0b101b;
+            border: 1px solid #1e293b;
+            color: #94a3b8;
+            padding: 9px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .q-btn.active {
+            background: #0088cc;
+            border-color: #0088cc;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(0, 136, 204, 0.4);
+        }
+
+        .q-btn:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TELEGRAM FORCE JOIN MODAL POPUP -->
+    <div class="tg-modal-overlay" id="tgModal">
+        <div class="tg-modal-card">
+            <div class="tg-icon-box">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.96-.75 3.78-1.65 6.31-2.74 7.58-3.27 3.61-1.51 4.36-1.78 4.85-1.78.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+            </div>
+            <div class="tg-modal-title" id="modalChannelName">CRICXPERTSLIVE</div>
+            <div class="tg-modal-subtitle">Unlock Full Stream Access</div>
+            <div class="tg-modal-desc">Please join our official Telegram channel to unlock uninterrupted HD access to this live match.</div>
+            
+            <a href="https://t.me/CricXpertsLive" target="_blank" id="modalTgBtn" class="tg-join-btn">JOIN TELEGRAM CHANNEL</a>
+            <button class="tg-already-btn" onclick="closeTgModal()">ALREADY JOINED</button>
+        </div>
+    </div>
+
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="top-title" id="displayTitle">CRICXPERTSLIVE</div>
+        <div class="header-right-group">
+            <div class="live-tag">
+                <div class="live-dot"></div> LIVE
+            </div>
+            <button class="admin-btn-floating" onclick="checkAdminPassword()">⚙️ Admin</button>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="admin-panel" id="adminPanel">
+        <h3>Admin Settings</h3>
+        
+        <label class="admin-label">Channel Name:</label>
+        <input type="text" id="inputChannel" class="admin-input" placeholder="CRICXPERTSLIVE">
+
+        <label class="admin-label">Telegram Link:</label>
+        <input type="text" id="inputTgLink" class="admin-input" placeholder="https://t.me/CricXpertsLive">
+
+        <label class="admin-label">720p Link (.m3u8):</label>
+        <input type="text" id="input720" class="admin-input">
+        
+        <label class="admin-label">360p Link (.m3u8):</label>
+        <input type="text" id="input360" class="admin-input">
+        
+        <button class="admin-save-btn" onclick="saveAdminSettings()">Save & Update</button>
+    </div>
+
+    <!-- VIDEO PLAYER -->
+    <div class="player-wrapper" id="playerWrapper">
+        <div class="play-overlay" id="playOverlay" onclick="startStream()">
+            <div class="play-btn-circle">
+                <div class="play-icon"></div>
+            </div>
+            <div class="play-overlay-text">TAP TO WATCH STREAM</div>
+        </div>
+        <video id="videoPlayer" controls playsinline></video>
+    </div>
+
+    <!-- CHANNEL INFO BAR -->
+    <div class="channel-info-bar">
+        <div class="ch-name-row">
+            <span id="displayChannelSub">CRICXPERTSLIVE</span> <span class="verified-badge">✔</span>
+        </div>
+        <div class="ch-desc-row">OFFICIAL HD BROADCAST ROOM</div>
+    </div>
+
+    <!-- TELEGRAM BANNER -->
+    <a href="https://t.me/CricXpertsLive" target="_blank" id="bannerTgLink" class="tg-banner-exact">
+        <div class="tg-banner-left-side">
+            <div class="tg-circle-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.35-.49.96-.75 3.78-1.65 6.31-2.74 7.58-3.27 3.61-1.51 4.36-1.78 4.85-1.78.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.2z"/></svg>
+            </div>
+            <div class="tg-text-group">
+                <h4 id="bannerTitleText">JOIN OFFICIAL TELEGRAM</h4>
+                <p>1-Click Tap • Instant 24H Match VIP Pass</p>
+            </div>
+        </div>
+        <div class="tg-tap-pill">TAP HERE 👉</div>
+    </a>
+
+    <!-- RELOAD & SHARE BUTTONS (SHARE INCLUDED) -->
+    <div class="action-buttons-row">
+        <button class="action-btn" onclick="location.reload()">
+            🔄 Reload Stream
+        </button>
+        <button class="action-btn" onclick="sharePage()">
+            ↗ Share Stream
+        </button>
+    </div>
+
+    <!-- QUALITY SWITCHER BAR -->
+    <div class="quality-bar">
+        <button class="q-btn active" onclick="setQuality('720p', this)">720p HD</button>
+        <button class="q-btn" onclick="setQuality('360p', this)">360p SD</button>
+    </div>
+
+    <script>
+        // Storage Load
+        let storedChannel = localStorage.getItem('saved_channel') || "CRICXPERTSLIVE";
+        let storedTgLink = localStorage.getItem('saved_tg_link') || "https://t.me/CricXpertsLive";
+        
+        let url720p = localStorage.getItem('saved_720') || "https://in-mc-flive.fancode.com/mumbai/4250390_english_hls_032d3a160a8611_1ta-di_h264/720p.m3u8?hdntl=Expires=1793507591~_GO=Generated~acl=/mumbai/4250390_english_hls_032d3a160a8611_1ta-di_h264/*~SessionID=fc-app_sportsguruand_e8f_watcho_ac78f853-0b79-45~Signature=ATFKiJvt7MIneLB9KZWVDHY1p8SZrMyJz49Z8eDz59v6zUcR49ujQiFa2_pVD37tFI6r32fCsTeCNeUOJiEZQ6cxcxcE";
+        
+        let url360p = localStorage.getItem('saved_360') || "https://in-mc-flive.fancode.com/mumbai/4250390_english_hls_032d3a160a8611_1ta-di_h264/360p.m3u8?hdntl=Expires=1793507591~_GO=Generated~acl=/mumbai/4250390_english_hls_032d3a160a8611_1ta-di_h264/*~SessionID=fc-app_sportsguruand_e8f_watcho_ac78f853-0b79-45~Signature=ATFKiJvt7MIneLB9KZWVDHY1p8SZrMyJz49Z8eDz59v6zUcR49ujQiFa2_pVD37tFI6r32fCsTeCNeUOJiEZQ6cxcxcE";
+
+        let currentStreamUrl = url720p;
+        let hlsInstance = null;
+
+        // Apply UI values
+        document.getElementById('displayTitle').innerText = storedChannel;
+        document.getElementById('modalChannelName').innerText = storedChannel;
+        document.getElementById('modalTgBtn').href = storedTgLink;
+        document.getElementById('bannerTitleText').innerText = "JOIN " + storedChannel;
+        document.getElementById('bannerTgLink').href = storedTgLink;
+        document.getElementById('displayChannelSub').innerText = storedChannel;
+
+        // Admin inputs
+        document.getElementById('inputChannel').value = storedChannel;
+        document.getElementById('inputTgLink').value = storedTgLink;
+        document.getElementById('input720').value = url720p;
+        document.getElementById('input360').value = url360p;
+
+        function closeTgModal() {
+            const modal = document.getElementById('tgModal');
+            modal.style.transition = 'opacity 0.3s ease';
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        // PASSWORD PROTECTION FOR ADMIN
+        function checkAdminPassword() {
+            let pass = prompt("Enter Admin Password:");
+            if (pass === "cric123") {
+                const panel = document.getElementById('adminPanel');
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            } else if (pass !== null) {
+                alert("Incorrect Password!");
+            }
+        }
+
+        function saveAdminSettings() {
+            const chName = document.getElementById('inputChannel').value.trim();
+            const tgLink = document.getElementById('inputTgLink').value.trim();
+            const new720 = document.getElementById('input720').value.trim();
+            const new360 = document.getElementById('input360').value.trim();
+
+            if(chName && tgLink && new720 && new360) {
+                localStorage.setItem('saved_channel', chName);
+                localStorage.setItem('saved_tg_link', tgLink);
+                localStorage.setItem('saved_720', new720);
+                localStorage.setItem('saved_360', new360);
+
+                alert('Updated successfully!');
+                location.reload();
+            } else {
+                alert('Please fill all fields!');
+            }
+        }
+
+        function playStreamUrl(url) {
+            const video = document.getElementById('videoPlayer');
+            if (Hls.isSupported()) {
+                if (hlsInstance) hlsInstance.destroy();
+                hlsInstance = new Hls();
+                hlsInstance.loadSource(url);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play();
+                });
+            }
+        }
+
+        function startStream() {
+            playStreamUrl(currentStreamUrl);
+            const overlay = document.getElementById('playOverlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+
+        function setQuality(qualityName, element) {
+            document.querySelectorAll('.q-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            currentStreamUrl = (qualityName === '720p') ? url720p : url360p;
+            playStreamUrl(currentStreamUrl);
+        }
+
+        function sharePage() {
+            if (navigator.share) {
+                navigator.share({
+                    title: storedChannel,
+                    url: window.location.href
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link Copied to Clipboard!');
+            }
+        }
+    </script>
+</body>
+</html>
